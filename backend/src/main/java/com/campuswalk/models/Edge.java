@@ -1,0 +1,39 @@
+package com.campuswalk.models;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "edges")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Edge {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @ManyToOne
+    @JoinColumn(name = "from_location")
+    private Location fromLocation;
+    
+    @ManyToOne
+    @JoinColumn(name = "to_location")
+    private Location toLocation;
+    
+    @Column(nullable = false)
+    private BigDecimal weight;
+    
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+}
