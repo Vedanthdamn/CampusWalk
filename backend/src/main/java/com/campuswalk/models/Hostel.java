@@ -9,11 +9,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "buildings")
+@Table(name = "hostels")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Building {
+public class Hostel {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

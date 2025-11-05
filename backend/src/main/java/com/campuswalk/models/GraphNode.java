@@ -9,11 +9,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "buildings")
+@Table(name = "graph_nodes")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Building {
+public class GraphNode {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +28,8 @@ public class Building {
     @Column(nullable = false, precision = 11, scale = 8)
     private BigDecimal lng;
     
-    private String description;
+    @Column(name = "node_type")
+    private String nodeType = "junction"; // junction, pathway, entrance
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;

@@ -9,26 +9,24 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "buildings")
+@Table(name = "graph_edges")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Building {
+public class GraphEdge {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @Column(name = "from_node", nullable = false)
+    private Long fromNode;
+    
+    @Column(name = "to_node", nullable = false)
+    private Long toNode;
+    
     @Column(nullable = false)
-    private String name;
-    
-    @Column(nullable = false, precision = 10, scale = 8)
-    private BigDecimal lat;
-    
-    @Column(nullable = false, precision = 11, scale = 8)
-    private BigDecimal lng;
-    
-    private String description;
+    private BigDecimal weight; // distance in meters
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
