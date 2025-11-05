@@ -1,385 +1,512 @@
-# 🏛️ CampusWalk - Outdoor Navigation System for SRM University
+# 🏛️ CampusWalk - Outdoor Campus Navigation for SRM KTR
 
-CampusWalk is a complete outdoor navigation web application designed specifically for SRM University Kattankulathur Campus. It helps hostel students navigate from their hostels to academic buildings and facilities across campus using outdoor routes only. Navigation stops at building entrances - no indoor/floor navigation.
+CampusWalk is a fully working outdoor campus navigation web application designed specifically for SRM University Kattankulathur Campus. It helps students navigate from their hostels to academic buildings using the shortest outdoor routes. Navigation is building-to-building only (no indoor/floor routing).
 
 ## ✨ Features
 
 ### Core Navigation Features
-- 🗺️ **Interactive Campus Map** - OpenStreetMap-based outdoor campus map with Leaflet.js
-- 🏠 **Hostel Locations** - Visual markers for Boys Hostel 1, BH2, MH12, and more
-- 🏢 **Building Markers** - Academic buildings, TechPark, Library, Food Court, Mini Hall, etc.
-- 🧭 **Shortest Path Routing** - Uses Dijkstra's algorithm for optimal outdoor routes
-- 📍 **Turn-by-Turn Directions** - Step-by-step navigation instructions with distance
-- 🔵 **Route Visualization** - Animated route polyline on the map
+- 🗺️ **Interactive Google Maps** - Real-time campus map with Google Maps JavaScript API
+- 🏠 **Hostel Selection** - Choose from Boys Hostel 1, BH2, MH12, and more
+- 🏢 **Building Selection** - Navigate to Tech Park, Library, Food Court, Mini Hall, etc.
+- 🧭 **Shortest Path Routing** - Server-side Dijkstra's algorithm for optimal routes
+- 📍 **Visual Path Display** - Blue polyline showing the complete route
+- 🎯 **Smart Markers** - Color-coded markers (blue=hostels, red=buildings, yellow=junctions)
 - 📱 **Responsive Design** - Works on desktop, tablet, and mobile devices
-- 🔐 **Supabase Authentication** - Secure email/password login with guest access option
+- 🔐 **Supabase Authentication** - Secure login with SRM email addresses
 
 ### Campus Coverage (SRM KTR)
 - **Hostels**: BH1, BH2, MH12
-- **Academic Buildings**: Tech Park, Main Academic Block, University Building
-- **Facilities**: Mini Hall, Library, Food Court
+- **Buildings**: Tech Park, University Building, Library, Mini Hall, Food Court
+- **Graph Network**: Junction nodes connecting all locations
 
 ## 🏗️ Architecture
 
 ### Technology Stack
 
 **Frontend:**
-- React 18 with Vite
-- Leaflet.js + React-Leaflet for outdoor maps
-- TailwindCSS for styling
-- Axios for API communication
-- React Router for routing
-- Supabase Auth for authentication
+- Next.js 14 (App Router)
+- React 18
+- TypeScript
+- TailwindCSS
+- Google Maps JavaScript API
+- Zustand (State Management)
 
 **Backend:**
-- Spring Boot 3.2.0
-- Java 17
-- Spring Data JPA
-- PostgreSQL (Supabase)
-- Maven for build management
+- Next.js API Routes (serverless)
+- Dijkstra's Algorithm (TypeScript)
+- Server-side path calculation
 
 **Database:**
 - Supabase PostgreSQL
 - Tables: hostels, buildings, graph_nodes, graph_edges
+- Supabase JS Client
+
+**Authentication:**
+- Supabase Auth
+- Email/Password with SRM email validation
 
 ### System Architecture
 
 ```
-┌─────────────────┐
-│   React App     │
-│   (Frontend)    │
-│   Port: 5173    │
-│   Leaflet Map   │
-└────────┬────────┘
-         │ HTTP/REST
-         ▼
-┌─────────────────┐
-│  Spring Boot    │
-│    (Backend)    │
-│   Port: 8080    │
-│  Dijkstra Path  │
-└────────┬────────┘
-         │ JDBC
-         ▼
-┌─────────────────┐
-│   Supabase      │
-│   PostgreSQL    │
-│   (Database)    │
-└─────────────────┘
+┌──────────────────────┐
+│   Next.js 14 App     │
+│   (Frontend + API)   │
+│   Port: 3000         │
+│   ├─ React Pages     │
+│   ├─ Google Maps     │
+│   ├─ Zustand Store   │
+│   └─ API Routes      │
+└──────────┬───────────┘
+           │ HTTP/REST
+           ▼
+┌──────────────────────┐
+│   Supabase           │
+│   (PostgreSQL)       │
+│   ├─ hostels         │
+│   ├─ buildings       │
+│   ├─ graph_nodes     │
+│   └─ graph_edges     │
+└──────────────────────┘
 ```
 
 ## 📊 Database Schema
 
 ### Tables
 
-1. **hostels** - Campus hostels with lat/lng coordinates
-   - id, name, lat, lng, description
+1. **hostels** - Campus hostels with coordinates
+   ```sql
+   id, name, lat, lng, description
+   ```
 
-2. **buildings** - Campus buildings with lat/lng coordinates  
-   - id, name, lat, lng, description
+2. **buildings** - Campus buildings with coordinates
+   ```sql
+   id, name, lat, lng, description
+   ```
 
-3. **graph_nodes** - Outdoor walkable points (junctions, pathways, entrances)
-   - id, name, lat, lng, node_type
+3. **graph_nodes** - Walkable points (entrances, junctions)
+   ```sql
+   id, name, lat, lng, node_type
+   ```
 
-4. **graph_edges** - Connections between nodes representing walkable paths
-   - id, from_node, to_node, weight (distance in meters)
+4. **graph_edges** - Connections between nodes
+   ```sql
+   id, from_node, to_node, weight
+   ```
 
-See `database/schema.sql` for the complete schema with sample seed data.
+See `database/schema.sql` for complete schema with seed data.
 
 ## 🚀 Setup Instructions
 
 ### Prerequisites
 
-- **Java 17 or higher**
-- **Maven 3.6+**
-- **Node.js 18+ and npm**
-- **PostgreSQL** (or Supabase account)
+- **Node.js 18+** and npm
+- **Supabase Account** (free tier works)
+- **Google Maps API Key** (development key)
 - **Git**
 
-### Database Setup (Supabase)
+### Step 1: Clone Repository
+
+```bash
+git clone https://github.com/Vedanthdamn/CampusWalk.git
+cd CampusWalk
+```
+
+### Step 2: Install Dependencies
+
+```bash
+npm install
+```
+
+This will install all required packages:
+- Next.js 14
+- React 18
+- TypeScript
+- TailwindCSS
+- Zustand
+- Supabase JS Client
+- Google Maps JS API Loader
+- React Hot Toast
+
+### Step 3: Setup Supabase Database
 
 1. **Create a Supabase Project**
    - Go to [supabase.com](https://supabase.com)
    - Create a new project
-   - Note your project URL and password
+   - Note your project URL and anon key
 
-2. **Run the Schema**
+2. **Run Database Schema**
    - Navigate to your Supabase project dashboard
-   - Go to SQL Editor
-   - Copy contents of `database/schema.sql`
-   - Execute the script (includes seed data for SRM KTR)
+   - Go to **SQL Editor**
+   - Copy the entire contents of `database/schema.sql`
+   - Paste and execute the script
+   - This creates all tables and inserts seed data for SRM KTR
 
-3. **Get Connection Details**
-   - Go to Project Settings → Database
-   - Note the connection string, host, and credentials
+3. **Verify Data**
+   - Go to **Table Editor** in Supabase
+   - Check that you have data in: hostels, buildings, graph_nodes, graph_edges
 
-### Backend Setup
+### Step 4: Get Google Maps API Key
 
-1. **Navigate to backend directory**
-   ```bash
-   cd backend
-   ```
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Enable **Maps JavaScript API**
+4. Create credentials → API Key
+5. Restrict key to Maps JavaScript API (recommended)
 
-2. **Configure Database Connection**
-   
-   Create or edit `src/main/resources/application.properties`:
-   ```properties
-   spring.datasource.url=jdbc:postgresql://db.your-project-ref.supabase.co:5432/postgres
-   spring.datasource.username=postgres
-   spring.datasource.password=your-password
-   ```
+### Step 5: Configure Environment Variables
 
-   Or copy and configure the `.env.example`:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your Supabase credentials
-   ```
+Create `.env.local` in the project root:
 
-3. **Build the project**
-   ```bash
-   mvn clean install
-   ```
+```bash
+cp .env.local.example .env.local
+```
 
-4. **Run the application**
-   ```bash
-   mvn spring-boot:run
-   ```
+Edit `.env.local` with your credentials:
 
-   The backend will start on `http://localhost:8080`
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key-here
+```
 
-### Frontend Setup
+### Step 6: Run Development Server
 
-1. **Navigate to frontend directory**
-   ```bash
-   cd frontend
-   ```
+```bash
+npm run dev
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+The application will start at `http://localhost:3000`
 
-3. **Configure Supabase**
-   
-   Copy and edit `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edit `.env` with your Supabase credentials:
-   ```env
-   VITE_SUPABASE_URL=https://your-project-ref.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
-   ```
+### Step 7: Build for Production
 
-4. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-   The frontend will start on `http://localhost:5173`
-
-5. **Build for production**
-   ```bash
-   npm run build
-   ```
+```bash
+npm run build
+npm start
+```
 
 ## 📡 API Endpoints
 
-### Hostels
+All API routes are serverless Next.js route handlers:
 
-- `GET /api/hostels` - Get all hostels with coordinates
-- `GET /api/hostels/{id}` - Get hostel by ID
+### Nodes
+- `GET /api/nodes` - Get all graph nodes
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "BH1-Entrance",
+      "lat": 12.8234,
+      "lng": 80.0445,
+      "node_type": "entrance"
+    }
+  ]
+  ```
 
 ### Buildings
+- `GET /api/buildings` - Get all buildings
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "Tech Park (TP)",
+      "lat": 12.8225,
+      "lng": 80.0420,
+      "description": "Technology Park"
+    }
+  ]
+  ```
 
-- `GET /api/buildings` - Get all buildings with coordinates
-- `GET /api/buildings/{id}` - Get building by ID
+### Hostels
+- `GET /api/hostels` - Get all hostels
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "Boys Hostel 1 (BH1)",
+      "lat": 12.8234,
+      "lng": 80.0445,
+      "description": "Boys Hostel Block 1"
+    }
+  ]
+  ```
 
-### Navigation
+### Path Finding
+- `GET /api/path?from={nodeId}&to={nodeId}` - Calculate shortest path
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "BH1-Entrance",
+      "lat": 12.8234,
+      "lng": 80.0445,
+      "node_type": "entrance"
+    },
+    {
+      "id": 9,
+      "name": "Junction-1",
+      "lat": 12.8235,
+      "lng": 80.0440,
+      "node_type": "junction"
+    },
+    ...
+  ]
+  ```
 
-- `GET /api/navigation?from={nodeId}&to={nodeId}` - Find shortest outdoor path
-  - Returns array of RouteNode objects with lat, lng, and instructions
+## 🎨 Project Structure
 
-### Authentication
-
-- `POST /api/auth/login` - Verify Supabase session token (body: {token})
-- `GET /api/auth/health` - Health check endpoint
-
-### Example API Response
-
-**Navigation Route Response:**
-```json
-[
-  {
-    "lat": 12.823456,
-    "lng": 80.043210,
-    "instruction": "Start at BH1-Entrance"
-  },
-  {
-    "lat": 12.824000,
-    "lng": 80.043500,
-    "instruction": "Continue through Hostel-Junction-1"
-  },
-  {
-    "lat": 12.822345,
-    "lng": 80.041234,
-    "instruction": "Arrive at TP-Entrance"
-  }
-]
+```
+CampusWalk/
+├── app/                      # Next.js 14 App Router
+│   ├── layout.tsx           # Root layout with sidebar/navbar
+│   ├── page.tsx             # Home page (select hostel/building)
+│   ├── map/                 # Map page with navigation
+│   │   └── page.tsx
+│   ├── buildings/           # Buildings list page
+│   │   └── page.tsx
+│   ├── hostels/             # Hostels list page
+│   │   └── page.tsx
+│   ├── login/               # Authentication page
+│   │   └── page.tsx
+│   └── api/                 # API routes
+│       ├── nodes/route.ts   # Get all graph nodes
+│       ├── path/route.ts    # Calculate shortest path
+│       ├── buildings/route.ts
+│       └── hostels/route.ts
+├── components/              # React components
+│   ├── Map.tsx             # Google Maps with markers/polyline
+│   ├── Sidebar.tsx         # Navigation sidebar
+│   ├── Navbar.tsx          # Top navbar with logout
+│   ├── HostelSelect.tsx    # Hostel dropdown selector
+│   └── BuildingSelect.tsx  # Building dropdown selector
+├── lib/                     # Utility libraries
+│   ├── supabaseClient.ts   # Supabase configuration & types
+│   ├── dijkstra.ts         # Dijkstra's algorithm implementation
+│   └── store.ts            # Zustand state management
+├── database/
+│   └── schema.sql          # Database schema with seed data
+├── .env.local.example      # Environment variables template
+├── package.json            # Dependencies and scripts
+├── tailwind.config.ts      # TailwindCSS configuration
+├── tsconfig.json           # TypeScript configuration
+└── README.md               # This file
 ```
 
-## 🎨 Usage Guide
+## 🎮 Usage Guide
 
 ### For Students
 
-1. **Open the application** at `http://localhost:5173`
-2. **Sign in** with your email/password or continue as guest
-3. **Select your hostel** from the dropdown (e.g., BH1, BH2, MH12)
-4. **Choose destination building** (e.g., Tech Park, Library, Mini Hall)
-5. **Click "Start Navigation"** to get your route
-6. **View the route** on the map as a blue polyline
-7. **Follow turn-by-turn directions** in the floating panel
-8. **Navigate to the building entrance** - route ends there (no indoor navigation)
+1. **Open Application**: Navigate to `http://localhost:3000`
+
+2. **Login (Optional)**:
+   - Click "Login" in navbar
+   - Sign up with your SRM email (@srmist.edu.in)
+   - Or continue as guest
+
+3. **Select Route**:
+   - Choose your **hostel** from dropdown (e.g., BH1, BH2, MH12)
+   - Choose **destination building** (e.g., Tech Park, Library)
+   - Click **"Find Path"**
+
+4. **View Route**:
+   - Automatically redirected to map page
+   - Blue polyline shows your route
+   - Markers show hostels (blue), buildings (red), junctions (yellow)
+
+5. **Navigate**:
+   - Follow the polyline on the map
+   - Route ends at building entrance
 
 ### Map Interactions
 
-- **Click hostel markers** (blue) to set as origin
-- **Click building markers** (red) to set as destination  
-- **Zoom and pan** the map to explore campus
-- **View popups** for location details
+- **Zoom**: Use mouse wheel or map controls
+- **Pan**: Click and drag the map
+- **Marker Click**: Shows location name and description
+- **Marker Hover**: Shows location type (hostel/building/junction)
 
-## 🗺️ Customization
+## 🧪 How Dijkstra's Algorithm Works
+
+### Implementation Details
+
+The shortest path calculation uses **Dijkstra's algorithm** implemented in TypeScript:
+
+**File**: `lib/dijkstra.ts`
+
+**Algorithm Steps**:
+
+1. **Graph Construction**:
+   - Fetches all graph_nodes and graph_edges from Supabase
+   - Builds adjacency list representing the campus road network
+   - Each edge has a weight (distance in meters)
+
+2. **Initialization**:
+   - Set distance to start node = 0
+   - Set distance to all other nodes = Infinity
+   - Create unvisited nodes set
+
+3. **Main Loop**:
+   - Pick unvisited node with smallest distance
+   - For each neighbor:
+     - Calculate alternate distance = current distance + edge weight
+     - If alternate distance < neighbor's current distance:
+       - Update neighbor's distance
+       - Record path (previous node pointer)
+   - Mark current node as visited
+
+4. **Path Reconstruction**:
+   - Starting from destination node
+   - Follow previous node pointers back to start
+   - Return ordered array of GraphNode objects
+
+5. **Response**:
+   - Returns array of nodes with lat/lng coordinates
+   - Frontend renders polyline connecting these points
+
+**Time Complexity**: O((V + E) log V) with priority queue
+**Space Complexity**: O(V + E)
+
+Where:
+- V = number of graph nodes
+- E = number of graph edges
+
+### Why Dijkstra?
+
+- **Optimal**: Always finds shortest path
+- **Efficient**: Fast enough for campus-scale networks
+- **Proven**: Industry-standard pathfinding algorithm
+- **No Heuristic Needed**: Unlike A*, doesn't require distance estimation
+
+## 🔧 Customization
 
 ### Adding New Locations
 
-1. **Add to Database**
-   ```sql
-   -- Add a new hostel
-   INSERT INTO hostels (name, lat, lng, description) 
-   VALUES ('New Hostel', 12.825000, 80.046000, 'Description');
+1. **Add to Database** (via Supabase SQL Editor):
 
-   -- Add a new building
-   INSERT INTO buildings (name, lat, lng, description) 
-   VALUES ('New Building', 12.821000, 80.042000, 'Description');
-   ```
+```sql
+-- Add a new hostel
+INSERT INTO hostels (name, lat, lng, description) 
+VALUES ('New Hostel', 12.825000, 80.046000, 'Description');
 
-2. **Add Graph Nodes and Edges**
-   ```sql
-   -- Add entrance node
-   INSERT INTO graph_nodes (name, lat, lng, node_type) 
-   VALUES ('NewBuilding-Entrance', 12.821000, 80.042000, 'entrance');
+-- Add a new building
+INSERT INTO buildings (name, lat, lng, description) 
+VALUES ('New Building', 12.821000, 80.042000, 'Description');
 
-   -- Add connecting edges (bidirectional)
-   INSERT INTO graph_edges (from_node, to_node, weight) 
-   VALUES (existing_node_id, new_node_id, 100);
-   ```
+-- Add entrance node
+INSERT INTO graph_nodes (name, lat, lng, node_type) 
+VALUES ('NewBuilding-Entrance', 12.821000, 80.042000, 'entrance');
 
-3. **Restart backend** to load new data
-
-### Changing Map Tiles
-
-Edit `frontend/src/components/MapView.jsx`:
-```javascript
-<TileLayer
-  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-  // Change to other tile providers like CartoDB, Stamen, etc.
-/>
+-- Add edges connecting to existing nodes
+INSERT INTO graph_edges (from_node, to_node, weight) 
+VALUES 
+  (existing_junction_id, new_node_id, 100),
+  (new_node_id, existing_junction_id, 100);
 ```
 
-### Styling
+2. **Restart Application** - Changes are reflected immediately
 
-Edit `frontend/tailwind.config.js` for theme customization.
+### Customizing Map Style
 
-## 🧪 Testing
+Edit `components/Map.tsx`:
 
-### Backend Tests
+```typescript
+const mapInstance = new google.maps.Map(mapRef.current, {
+  center: { lat: 12.823, lng: 80.044 },
+  zoom: 16,
+  // Add custom map styles
+  styles: [
+    // Your custom map styling
+  ],
+});
+```
+
+### Changing Colors
+
+Edit `tailwind.config.ts` to customize theme colors.
+
+## 🛠️ Development
+
+### Available Scripts
 
 ```bash
-cd backend
-mvn test
+# Development server
+npm run dev
+
+# Production build
+npm run build
+
+# Start production server
+npm start
+
+# Lint code
+npm run lint
 ```
 
-### Manual Testing
+### Environment Variables
 
-1. **Test Authentication**
-   - Try sign up, sign in, and guest access
-   
-2. **Test Data Loading**
-   - Verify hostels and buildings appear on map
-   - Check marker icons and popups
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | `https://xxx.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | `eyJhbGc...` |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps API key | `AIzaSy...` |
 
-3. **Test Navigation**
-   - Select BH1 as origin
-   - Select Tech Park as destination
-   - Verify route appears
-   - Check directions panel
+## 🔒 Security
 
-4. **Test API Directly**
-   ```bash
-   # Get hostels
-   curl http://localhost:8080/api/hostels
-   
-   # Get buildings
-   curl http://localhost:8080/api/buildings
-   
-   # Get navigation route (use actual node IDs from your database)
-   curl "http://localhost:8080/api/navigation?from=1&to=6"
-   ```
+### Authentication
+- Supabase Auth validates SRM email addresses
+- Email must end with `@srmist.edu.in` or `@srmist.ac.in`
+- Passwords are hashed by Supabase
 
-## 🔧 Troubleshooting
+### API Security
+- Environment variables are server-side only (except `NEXT_PUBLIC_*`)
+- API routes validate inputs
+- Database queries use parameterized statements (SQL injection prevention)
 
-### Backend Issues
+### Best Practices
+- Never commit `.env.local` to version control
+- Use environment variables for sensitive data
+- Keep dependencies updated
 
-**Problem:** Cannot connect to database
-- Check Supabase credentials in `application.properties`
-- Verify Supabase project is active
-- Check IP allowlist in Supabase settings
+## 🐛 Troubleshooting
 
-**Problem:** API returns 404
-- Verify Spring Boot is running on port 8080
-- Check context path is `/api`
-- Look at console logs for errors
+### Issue: Map not loading
 
-### Frontend Issues
-
-**Problem:** Cannot connect to backend
-- Check backend is running on port 8080
-- Verify CORS is enabled in backend
+**Solution**:
+- Check Google Maps API key is valid
+- Verify Maps JavaScript API is enabled in Google Cloud Console
 - Check browser console for errors
 
-**Problem:** Map not displaying
-- Verify Leaflet CSS is loaded
-- Check browser console for JavaScript errors
-- Ensure lat/lng coordinates are valid numbers
+### Issue: Cannot connect to Supabase
 
-**Problem:** Authentication fails
-- Check Supabase URL and anon key in `.env`
-- Verify Supabase project is active
+**Solution**:
+- Verify Supabase URL and anon key in `.env.local`
+- Check Supabase project is active
+- Ensure database tables exist (run schema.sql)
+
+### Issue: No path found
+
+**Solution**:
+- Verify graph_edges table has bidirectional connections
+- Check that nodes exist for selected hostel/building
+- Ensure graph is connected (no isolated nodes)
+
+### Issue: Authentication fails
+
+**Solution**:
+- Use SRM email address (@srmist.edu.in)
+- Check email verification if required
 - Try guest access to bypass auth
 
 ## 📈 Future Enhancements
 
-- [ ] Real-time location tracking (if GPS available)
-- [ ] Voice-guided navigation
+- [ ] Real-time location tracking with device GPS
+- [ ] Turn-by-turn voice navigation
 - [ ] Save favorite routes
 - [ ] Multiple language support
-- [ ] Accessibility features
-- [ ] Crowdsourced updates
-- [ ] Integration with class schedules
 - [ ] Weather-based route suggestions
-- [ ] Estimated walking time
+- [ ] Estimated walking time calculation
 - [ ] Share routes with friends
-
-## 🤝 Contributing
-
-Contributions are welcome! To contribute:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- [ ] Mobile app (React Native)
+- [ ] Accessibility features
+- [ ] Dark mode
 
 ## 📝 License
 
@@ -388,42 +515,17 @@ This project is licensed under the MIT License.
 ## 🙏 Acknowledgments
 
 - SRM University for campus data
-- React and Spring Boot communities
-- Leaflet.js for excellent mapping library
+- Next.js team for amazing framework
 - Supabase for backend infrastructure
-- OpenStreetMap contributors
+- Google Maps for mapping services
 
 ## 📞 Support
 
 For issues or questions:
 - Open an issue on GitHub
-- Check the documentation
-- Contact the development team
+- Check documentation above
+- Review existing issues for solutions
 
 ---
-
-## Quick Start Commands
-
-```bash
-# Clone the repository
-git clone https://github.com/Vedanthdamn/CampusWalk.git
-cd CampusWalk
-
-# Setup database (run schema.sql in Supabase SQL Editor)
-
-# Start backend
-cd backend
-# Configure application.properties with your Supabase credentials
-mvn spring-boot:run
-
-# In a new terminal, start frontend
-cd frontend
-npm install
-# Create .env with your Supabase credentials
-npm run dev
-
-# Access the application
-# Open browser to http://localhost:5173
-```
 
 **Built with ❤️ for SRM University Students**
