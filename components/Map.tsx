@@ -30,7 +30,7 @@ export default function Map({ path }: MapProps) {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     
     if (!apiKey) {
-      toast.error('Google Maps API key not configured');
+      toast.error('Google Maps API key not found. Please set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in your environment variables.');
       return;
     }
 

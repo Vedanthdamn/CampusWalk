@@ -6,6 +6,9 @@ import Map from '@/components/Map';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabaseClient';
 
+// Tolerance for coordinate matching (degrees)
+const COORDINATE_TOLERANCE = 0.0001;
+
 export default function MapPage() {
   const { selectedHostel, selectedBuilding, path, setPath, isLoading, setIsLoading } = useMapStore();
   const [mounted, setMounted] = useState(false);
@@ -47,12 +50,14 @@ export default function MapPage() {
       // Find closest nodes to hostel and building
       const hostelNodeMatch = nodes?.find(
         (n) => n.name.includes(hostelData.name) || 
-               (Math.abs(n.lat - hostelData.lat) < 0.0001 && Math.abs(n.lng - hostelData.lng) < 0.0001)
+               (Math.abs(n.lat - hostelData.lat) < COORDINATE_TOLERANCE && 
+                Math.abs(n.lng - hostelData.lng) < COORDINATE_TOLERANCE)
       );
 
       const buildingNodeMatch = nodes?.find(
         (n) => n.name.includes(buildingData.name) || 
-               (Math.abs(n.lat - buildingData.lat) < 0.0001 && Math.abs(n.lng - buildingData.lng) < 0.0001)
+               (Math.abs(n.lat - buildingData.lat) < COORDINATE_TOLERANCE && 
+                Math.abs(n.lng - buildingData.lng) < COORDINATE_TOLERANCE)
       );
 
       if (!hostelNodeMatch || !buildingNodeMatch) {
