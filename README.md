@@ -1,24 +1,23 @@
-# 🏛️ CampusWalk - Indoor Navigation System for SRM University
+# 🏛️ CampusWalk - Outdoor Navigation System for SRM University
 
-CampusWalk is a comprehensive indoor navigation web application designed specifically for SRM University Kattankulathur Campus. It enables students, faculty, and visitors to easily navigate through campus buildings, find rooms, labs, mess halls, libraries, and get turn-by-turn directions between any two indoor locations.
+CampusWalk is a complete outdoor navigation web application designed specifically for SRM University Kattankulathur Campus. It helps hostel students navigate from their hostels to academic buildings and facilities across campus using outdoor routes only. Navigation stops at building entrances - no indoor/floor navigation.
 
 ## ✨ Features
 
 ### Core Navigation Features
-- 🗺️ **Interactive Floor Maps** - View SVG-based floor plans for each building and floor
-- 🔍 **Smart Search** - Search for any room, lab, library, mess, auditorium, or landmark
-- 🧭 **Shortest Path Routing** - Uses Dijkstra's algorithm to find optimal routes
-- 📍 **Turn-by-Turn Directions** - Human-readable navigation instructions
-- 🪜 **Multi-Floor Navigation** - Support for stairs and elevators
-- ✨ **Animated Path Visualization** - Animated route highlighting on floor maps
-- 📱 **Responsive Design** - Works seamlessly on desktop, tablet, and mobile devices
+- 🗺️ **Interactive Campus Map** - OpenStreetMap-based outdoor campus map with Leaflet.js
+- 🏠 **Hostel Locations** - Visual markers for Boys Hostel 1, BH2, MH12, and more
+- 🏢 **Building Markers** - Academic buildings, TechPark, Library, Food Court, Mini Hall, etc.
+- 🧭 **Shortest Path Routing** - Uses Dijkstra's algorithm for optimal outdoor routes
+- 📍 **Turn-by-Turn Directions** - Step-by-step navigation instructions with distance
+- 🔵 **Route Visualization** - Animated route polyline on the map
+- 📱 **Responsive Design** - Works on desktop, tablet, and mobile devices
+- 🔐 **Supabase Authentication** - Secure email/password login with guest access option
 
-### Building Coverage
-- **Tech Park** - Computer labs and technology facilities
-- **University Building (UB)** - Academic departments and classrooms
-- **Library** - Dr. T.P. Ganesan Library with multiple floors
-- **Food Court** - Dining areas with multiple food counters
-- **Admin Block** - Administrative offices and services
+### Campus Coverage (SRM KTR)
+- **Hostels**: BH1, BH2, MH12
+- **Academic Buildings**: Tech Park, Main Academic Block, University Building
+- **Facilities**: Mini Hall, Library, Food Court
 
 ## 🏗️ Architecture
 
@@ -26,21 +25,22 @@ CampusWalk is a comprehensive indoor navigation web application designed specifi
 
 **Frontend:**
 - React 18 with Vite
+- Leaflet.js + React-Leaflet for outdoor maps
 - TailwindCSS for styling
 - Axios for API communication
-- React Router for navigation
-- SVG for floor plan rendering
+- React Router for routing
+- Supabase Auth for authentication
 
 **Backend:**
-- Java 17
 - Spring Boot 3.2.0
+- Java 17
 - Spring Data JPA
 - PostgreSQL (Supabase)
 - Maven for build management
 
 **Database:**
 - Supabase PostgreSQL
-- Supabase Storage for SVG floor plans
+- Tables: hostels, buildings, graph_nodes, graph_edges
 
 ### System Architecture
 
@@ -49,6 +49,7 @@ CampusWalk is a comprehensive indoor navigation web application designed specifi
 │   React App     │
 │   (Frontend)    │
 │   Port: 5173    │
+│   Leaflet Map   │
 └────────┬────────┘
          │ HTTP/REST
          ▼
@@ -56,6 +57,7 @@ CampusWalk is a comprehensive indoor navigation web application designed specifi
 │  Spring Boot    │
 │    (Backend)    │
 │   Port: 8080    │
+│  Dijkstra Path  │
 └────────┬────────┘
          │ JDBC
          ▼
@@ -70,13 +72,19 @@ CampusWalk is a comprehensive indoor navigation web application designed specifi
 
 ### Tables
 
-1. **buildings** - Campus buildings
-2. **floors** - Floors within buildings with SVG URLs
-3. **locations** - Individual locations (rooms, labs, etc.)
-4. **edges** - Connections between locations on the same floor
-5. **vertical_links** - Stairs and elevators connecting different floors
+1. **hostels** - Campus hostels with lat/lng coordinates
+   - id, name, lat, lng, description
 
-See `database/schema.sql` for the complete schema and sample data.
+2. **buildings** - Campus buildings with lat/lng coordinates  
+   - id, name, lat, lng, description
+
+3. **graph_nodes** - Outdoor walkable points (junctions, pathways, entrances)
+   - id, name, lat, lng, node_type
+
+4. **graph_edges** - Connections between nodes representing walkable paths
+   - id, from_node, to_node, weight (distance in meters)
+
+See `database/schema.sql` for the complete schema with sample seed data.
 
 ## 🚀 Setup Instructions
 
@@ -99,14 +107,11 @@ See `database/schema.sql` for the complete schema and sample data.
    - Navigate to your Supabase project dashboard
    - Go to SQL Editor
    - Copy contents of `database/schema.sql`
-   - Execute the script
+   - Execute the script (includes seed data for SRM KTR)
 
-3. **Upload SVG Floor Plans** (Optional)
-   - Go to Storage in Supabase
-   - Create a bucket named `floorplans`
-   - Upload your SVG floor plan files
-   - Make the bucket public for read access
-   - Update the `svg_url` in the database to point to your uploaded files
+3. **Get Connection Details**
+   - Go to Project Settings → Database
+   - Note the connection string, host, and credentials
 
 ### Backend Setup
 
@@ -116,11 +121,18 @@ See `database/schema.sql` for the complete schema and sample data.
    ```
 
 2. **Configure Database Connection**
-   Edit `src/main/resources/application.properties`:
+   
+   Create or edit `src/main/resources/application.properties`:
    ```properties
-   spring.datasource.url=jdbc:postgresql://[YOUR-PROJECT-REF].supabase.co:5432/postgres
+   spring.datasource.url=jdbc:postgresql://db.your-project-ref.supabase.co:5432/postgres
    spring.datasource.username=postgres
-   spring.datasource.password=[YOUR-PASSWORD]
+   spring.datasource.password=your-password
+   ```
+
+   Or copy and configure the `.env.example`:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your Supabase credentials
    ```
 
 3. **Build the project**
@@ -147,148 +159,137 @@ See `database/schema.sql` for the complete schema and sample data.
    npm install
    ```
 
-3. **Start development server**
+3. **Configure Supabase**
+   
+   Copy and edit `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` with your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
+   ```
+
+4. **Start development server**
    ```bash
    npm run dev
    ```
 
    The frontend will start on `http://localhost:5173`
 
-4. **Build for production**
+5. **Build for production**
    ```bash
    npm run build
    ```
 
 ## 📡 API Endpoints
 
+### Hostels
+
+- `GET /api/hostels` - Get all hostels with coordinates
+- `GET /api/hostels/{id}` - Get hostel by ID
+
 ### Buildings
 
-- `GET /api/buildings` - Get all buildings
+- `GET /api/buildings` - Get all buildings with coordinates
 - `GET /api/buildings/{id}` - Get building by ID
-
-### Floors
-
-- `GET /api/floors` - Get all floors
-- `GET /api/floors/{id}` - Get floor by ID
-- `GET /api/floors/building/{buildingId}` - Get floors for a building
-
-### Locations
-
-- `GET /api/locations` - Get all locations
-- `GET /api/locations/{id}` - Get location by ID
-- `GET /api/locations/floor/{floorId}` - Get locations for a floor
-- `GET /api/locations/search?query={term}` - Search locations
-- `GET /api/locations/type/{type}` - Get locations by type
 
 ### Navigation
 
-- `GET /api/navigation/route?from={fromId}&to={toId}` - Find shortest path
+- `GET /api/navigation?from={nodeId}&to={nodeId}` - Find shortest outdoor path
+  - Returns array of RouteNode objects with lat, lng, and instructions
+
+### Authentication
+
+- `POST /api/auth/login` - Verify Supabase session token (body: {token})
+- `GET /api/auth/health` - Health check endpoint
 
 ### Example API Response
 
 **Navigation Route Response:**
 ```json
-{
-  "path": [
-    {
-      "locationId": 1,
-      "locationName": "TP-GF-Entrance",
-      "floorId": 1,
-      "floorNumber": 1,
-      "buildingName": "Tech Park",
-      "x": 50,
-      "y": 50,
-      "locationType": "entrance"
-    },
-    ...
-  ],
-  "totalDistance": 45.5,
-  "instructions": [
-    {
-      "instruction": "Start at TP-GF-Entrance",
-      "direction": "start",
-      "distance": 0.0,
-      "locationType": "entrance",
-      "locationName": "TP-GF-Entrance"
-    },
-    {
-      "instruction": "Walk right for 5.0m towards TP-GF-Reception",
-      "direction": "right",
-      "distance": 5.0,
-      "locationType": "landmark",
-      "locationName": "TP-GF-Reception"
-    },
-    ...
-  ],
-  "success": true,
-  "message": "Route found successfully"
-}
-```
-
-## 🗺️ How to Upload New Floor Maps
-
-### Creating SVG Floor Plans
-
-1. **Create or convert floor plans to SVG format**
-   - Use tools like Inkscape, Adobe Illustrator, or online converters
-   - Ensure coordinates are consistent
-   - Keep file size reasonable (< 1MB per floor)
-
-2. **Upload to Supabase Storage**
-   ```sql
-   -- After uploading, update the floors table
-   UPDATE floors 
-   SET svg_url = 'https://your-project.supabase.co/storage/v1/object/public/floorplans/techpark_ground.svg'
-   WHERE id = 1;
-   ```
-
-3. **Add Location Coordinates**
-   - Locations should have X and Y coordinates matching the SVG coordinate system
-   - You can use browser developer tools to identify coordinates on the SVG
-
-### Adding New Buildings and Floors
-
-```sql
--- Insert a new building
-INSERT INTO buildings (name, description) 
-VALUES ('New Building', 'Description');
-
--- Insert floors for the building
-INSERT INTO floors (building_id, floor_number, floor_name, svg_url) 
-VALUES (6, 1, 'Ground Floor', '/floorplans/newbuilding_ground.svg');
-
--- Add locations
-INSERT INTO locations (floor_id, name, type, x, y, description) 
-VALUES (12, 'Room-101', 'room', 100, 150, 'Classroom 101');
-
--- Add edges (connections)
-INSERT INTO edges (from_location, to_location, weight) 
-VALUES (57, 58, 5.0);
-```
-
-## 🎨 Customization
-
-### Changing Colors
-
-Edit `frontend/tailwind.config.js`:
-```javascript
-theme: {
-  extend: {
-    colors: {
-      primary: '#1e40af',  // Change primary color
-      secondary: '#7c3aed',  // Change secondary color
-    },
+[
+  {
+    "lat": 12.823456,
+    "lng": 80.043210,
+    "instruction": "Start at BH1-Entrance"
   },
-}
+  {
+    "lat": 12.824000,
+    "lng": 80.043500,
+    "instruction": "Continue through Hostel-Junction-1"
+  },
+  {
+    "lat": 12.822345,
+    "lng": 80.041234,
+    "instruction": "Arrive at TP-Entrance"
+  }
+]
 ```
 
-### Adding New Location Types
+## 🎨 Usage Guide
 
-1. Update the database with new location types
-2. Update color mapping in `FloorMapViewer.jsx`:
-   ```javascript
-   case 'new_type': return '#hexcolor';
+### For Students
+
+1. **Open the application** at `http://localhost:5173`
+2. **Sign in** with your email/password or continue as guest
+3. **Select your hostel** from the dropdown (e.g., BH1, BH2, MH12)
+4. **Choose destination building** (e.g., Tech Park, Library, Mini Hall)
+5. **Click "Start Navigation"** to get your route
+6. **View the route** on the map as a blue polyline
+7. **Follow turn-by-turn directions** in the floating panel
+8. **Navigate to the building entrance** - route ends there (no indoor navigation)
+
+### Map Interactions
+
+- **Click hostel markers** (blue) to set as origin
+- **Click building markers** (red) to set as destination  
+- **Zoom and pan** the map to explore campus
+- **View popups** for location details
+
+## 🗺️ Customization
+
+### Adding New Locations
+
+1. **Add to Database**
+   ```sql
+   -- Add a new hostel
+   INSERT INTO hostels (name, lat, lng, description) 
+   VALUES ('New Hostel', 12.825000, 80.046000, 'Description');
+
+   -- Add a new building
+   INSERT INTO buildings (name, lat, lng, description) 
+   VALUES ('New Building', 12.821000, 80.042000, 'Description');
    ```
+
+2. **Add Graph Nodes and Edges**
+   ```sql
+   -- Add entrance node
+   INSERT INTO graph_nodes (name, lat, lng, node_type) 
+   VALUES ('NewBuilding-Entrance', 12.821000, 80.042000, 'entrance');
+
+   -- Add connecting edges (bidirectional)
+   INSERT INTO graph_edges (from_node, to_node, weight) 
+   VALUES (existing_node_id, new_node_id, 100);
+   ```
+
+3. **Restart backend** to load new data
+
+### Changing Map Tiles
+
+Edit `frontend/src/components/MapView.jsx`:
+```javascript
+<TileLayer
+  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+  // Change to other tile providers like CartoDB, Stamen, etc.
+/>
+```
+
+### Styling
+
+Edit `frontend/tailwind.config.js` for theme customization.
 
 ## 🧪 Testing
 
@@ -299,31 +300,32 @@ cd backend
 mvn test
 ```
 
-### Frontend Tests
-
-```bash
-cd frontend
-npm test
-```
-
 ### Manual Testing
 
-1. **Test Search Functionality**
-   - Search for "Lab"
-   - Verify results appear
-   - Click on a result
+1. **Test Authentication**
+   - Try sign up, sign in, and guest access
+   
+2. **Test Data Loading**
+   - Verify hostels and buildings appear on map
+   - Check marker icons and popups
 
-2. **Test Navigation**
-   - Select a start location
-   - Select a destination
-   - Click "Find Route"
-   - Verify path is displayed
-   - Check turn-by-turn instructions
+3. **Test Navigation**
+   - Select BH1 as origin
+   - Select Tech Park as destination
+   - Verify route appears
+   - Check directions panel
 
-3. **Test Multi-Floor Navigation**
-   - Select locations on different floors
-   - Verify stairs/elevator transitions
-   - Check floor switching in instructions
+4. **Test API Directly**
+   ```bash
+   # Get hostels
+   curl http://localhost:8080/api/hostels
+   
+   # Get buildings
+   curl http://localhost:8080/api/buildings
+   
+   # Get navigation route (use actual node IDs from your database)
+   curl "http://localhost:8080/api/navigation?from=1&to=6"
+   ```
 
 ## 🔧 Troubleshooting
 
@@ -332,92 +334,73 @@ npm test
 **Problem:** Cannot connect to database
 - Check Supabase credentials in `application.properties`
 - Verify Supabase project is active
-- Check firewall settings
+- Check IP allowlist in Supabase settings
 
 **Problem:** API returns 404
 - Verify Spring Boot is running on port 8080
 - Check context path is `/api`
+- Look at console logs for errors
 
 ### Frontend Issues
 
 **Problem:** Cannot connect to backend
-- Check backend is running
-- Verify proxy configuration in `vite.config.js`
-- Check browser console for CORS errors
+- Check backend is running on port 8080
+- Verify CORS is enabled in backend
+- Check browser console for errors
 
-**Problem:** Locations not displaying
-- Verify database has sample data
+**Problem:** Map not displaying
+- Verify Leaflet CSS is loaded
 - Check browser console for JavaScript errors
-- Verify API responses in Network tab
+- Ensure lat/lng coordinates are valid numbers
+
+**Problem:** Authentication fails
+- Check Supabase URL and anon key in `.env`
+- Verify Supabase project is active
+- Try guest access to bypass auth
 
 ## 📈 Future Enhancements
 
-- [ ] Real-time location tracking (if GPS is available indoors)
-- [ ] AR navigation overlay using device camera
+- [ ] Real-time location tracking (if GPS available)
 - [ ] Voice-guided navigation
-- [ ] Accessibility features for differently-abled users
-- [ ] Crowdsourced updates for room information
-- [ ] Integration with campus events calendar
-- [ ] Parking spot finder
-- [ ] Save favorite locations
-- [ ] Share routes with others
-- [ ] Offline mode with cached maps
+- [ ] Save favorite routes
+- [ ] Multiple language support
+- [ ] Accessibility features
+- [ ] Crowdsourced updates
+- [ ] Integration with class schedules
+- [ ] Weather-based route suggestions
+- [ ] Estimated walking time
+- [ ] Share routes with friends
 
-## 👥 Contributing
+## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+Contributions are welcome! To contribute:
 
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-3. **Commit your changes**
-   ```bash
-   git commit -m 'Add amazing feature'
-   ```
-4. **Push to the branch**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-5. **Open a Pull Request**
-
-### Contribution Guidelines
-
-- Follow existing code style
-- Write meaningful commit messages
-- Add tests for new features
-- Update documentation
-- Ensure all tests pass
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
 - SRM University for campus data
 - React and Spring Boot communities
-- Contributors and testers
+- Leaflet.js for excellent mapping library
+- Supabase for backend infrastructure
+- OpenStreetMap contributors
 
 ## 📞 Support
 
-For issues, questions, or suggestions:
+For issues or questions:
 - Open an issue on GitHub
-- Contact the development team
 - Check the documentation
-
-## 🎓 For Students
-
-This is an open-source educational project. Feel free to:
-- Learn from the code
-- Extend functionality
-- Deploy for your campus
-- Share improvements
+- Contact the development team
 
 ---
-
-**Note:** This application simulates indoor navigation and does not use paid Google Maps APIs or real GPS tracking. All navigation is based on the graph database of locations and pre-defined connections.
 
 ## Quick Start Commands
 
@@ -426,16 +409,17 @@ This is an open-source educational project. Feel free to:
 git clone https://github.com/Vedanthdamn/CampusWalk.git
 cd CampusWalk
 
-# Setup database (Supabase)
-# Run database/schema.sql in Supabase SQL Editor
+# Setup database (run schema.sql in Supabase SQL Editor)
 
 # Start backend
 cd backend
+# Configure application.properties with your Supabase credentials
 mvn spring-boot:run
 
 # In a new terminal, start frontend
 cd frontend
 npm install
+# Create .env with your Supabase credentials
 npm run dev
 
 # Access the application
