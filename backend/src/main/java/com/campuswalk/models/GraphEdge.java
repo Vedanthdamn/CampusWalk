@@ -1,35 +1,32 @@
 package com.campuswalk.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "edges")
-@Getter
-@Setter
+@Table(name = "graph_edges")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Edge {
+public class GraphEdge {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne
-    @JoinColumn(name = "from_location")
-    private Location fromLocation;
+    @Column(name = "from_node", nullable = false)
+    private Long fromNode;
     
-    @ManyToOne
-    @JoinColumn(name = "to_location")
-    private Location toLocation;
+    @Column(name = "to_node", nullable = false)
+    private Long toNode;
     
     @Column(nullable = false)
-    private BigDecimal weight;
+    private BigDecimal weight; // distance in meters
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;

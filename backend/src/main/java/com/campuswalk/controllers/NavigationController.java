@@ -1,33 +1,40 @@
 package com.campuswalk.controllers;
 
-import com.campuswalk.dto.RouteResponse;
+import com.campuswalk.dto.RouteNode;
 import com.campuswalk.services.PathfindingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/navigation")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
 public class NavigationController {
     
     @Autowired
     private PathfindingService pathfindingService;
     
     /**
-     * Find shortest path between two locations
-     * GET /api/navigation/route?from=1&to=20
+     * Find shortest outdoor path between two nodes
+     * GET /api/navigation?from={nodeId}&to={nodeId}
      */
-    @GetMapping("/route")
-    public ResponseEntity<RouteResponse> findRoute(
+    @GetMapping
+    public ResponseEntity<List<RouteNode>> findRoute(
         @RequestParam Long from,
         @RequestParam Long to
     ) {
-        RouteResponse response = pathfindingService.findShortestPath(from, to);
-        
-        if (response.isSuccess()) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
+        try {
+            List<RouteNode> route = pathfindingService.findShortestPath(from, to);
+            
+            if (route.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return ResponseEntity.ok(route);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

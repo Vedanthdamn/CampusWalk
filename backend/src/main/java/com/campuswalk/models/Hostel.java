@@ -1,42 +1,32 @@
 package com.campuswalk.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "locations")
-@Getter
-@Setter
+@Table(name = "hostels")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Location {
+public class Hostel {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne
-    @JoinColumn(name = "floor_id")
-    @JsonIgnore
-    private Floor floor;
-    
     @Column(nullable = false)
     private String name;
     
-    @Column(nullable = false)
-    private String type;
+    @Column(nullable = false, precision = 10, scale = 8)
+    private BigDecimal lat;
     
-    @Column(nullable = false)
-    private BigDecimal x;
-    
-    @Column(nullable = false)
-    private BigDecimal y;
+    @Column(nullable = false, precision = 11, scale = 8)
+    private BigDecimal lng;
     
     private String description;
     

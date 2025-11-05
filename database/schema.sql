@@ -1,73 +1,62 @@
 -- CampusWalk Database Schema for Supabase PostgreSQL
--- Indoor Navigation System for SRM University Kattankulathur Campus
+-- Outdoor Navigation System for SRM University Kattankulathur Campus
+-- NO FLOORS - Routing stops at building entrances
 
 -- Drop existing tables if they exist
-DROP TABLE IF EXISTS vertical_links CASCADE;
-DROP TABLE IF EXISTS edges CASCADE;
-DROP TABLE IF EXISTS locations CASCADE;
-DROP TABLE IF EXISTS floors CASCADE;
+DROP TABLE IF EXISTS graph_edges CASCADE;
+DROP TABLE IF EXISTS graph_nodes CASCADE;
 DROP TABLE IF EXISTS buildings CASCADE;
+DROP TABLE IF EXISTS hostels CASCADE;
 
--- Buildings table
+-- Hostels table
+CREATE TABLE hostels (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    lat NUMERIC(10, 8) NOT NULL,
+    lng NUMERIC(11, 8) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Buildings table (destination points)
 CREATE TABLE buildings (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
+    lat NUMERIC(10, 8) NOT NULL,
+    lng NUMERIC(11, 8) NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Floors table
-CREATE TABLE floors (
+-- Graph nodes table (outdoor walkable points - junctions, pathways)
+CREATE TABLE graph_nodes (
     id SERIAL PRIMARY KEY,
-    building_id INT REFERENCES buildings(id) ON DELETE CASCADE,
-    floor_number INT NOT NULL,
-    floor_name TEXT,
-    svg_url TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(building_id, floor_number)
-);
-
--- Locations table (rooms, labs, landmarks, etc.)
-CREATE TABLE locations (
-    id SERIAL PRIMARY KEY,
-    floor_id INT REFERENCES floors(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    type TEXT NOT NULL, -- room, lab, stairs, elevator, entrance, exit, landmark, mess, library, auditorium
-    x NUMERIC NOT NULL,
-    y NUMERIC NOT NULL,
-    description TEXT,
+    lat NUMERIC(10, 8) NOT NULL,
+    lng NUMERIC(11, 8) NOT NULL,
+    node_type TEXT DEFAULT 'junction', -- junction, pathway, entrance
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Edges table (connections between locations on same floor)
-CREATE TABLE edges (
+-- Graph edges table (connections between nodes representing walkable paths)
+CREATE TABLE graph_edges (
     id SERIAL PRIMARY KEY,
-    from_location INT REFERENCES locations(id) ON DELETE CASCADE,
-    to_location INT REFERENCES locations(id) ON DELETE CASCADE,
+    from_node INT REFERENCES graph_nodes(id) ON DELETE CASCADE,
+    to_node INT REFERENCES graph_nodes(id) ON DELETE CASCADE,
     weight NUMERIC NOT NULL, -- distance in meters
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CHECK (from_location != to_location)
-);
-
--- Vertical links table (stairs, elevators connecting different floors)
-CREATE TABLE vertical_links (
-    id SERIAL PRIMARY KEY,
-    from_location INT REFERENCES locations(id) ON DELETE CASCADE,
-    to_location INT REFERENCES locations(id) ON DELETE CASCADE,
-    vertical_type TEXT NOT NULL, -- stairs, elevator, escalator
-    weight NUMERIC DEFAULT 15, -- time/distance penalty for vertical movement
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CHECK (from_location != to_location)
+    CHECK (from_node != to_node)
 );
 
 -- Create indexes for better query performance
-CREATE INDEX idx_floors_building ON floors(building_id);
-CREATE INDEX idx_locations_floor ON locations(floor_id);
-CREATE INDEX idx_locations_type ON locations(type);
-CREATE INDEX idx_edges_from ON edges(from_location);
-CREATE INDEX idx_edges_to ON edges(to_location);
-CREATE INDEX idx_vertical_from ON vertical_links(from_location);
-CREATE INDEX idx_vertical_to ON vertical_links(to_location);
+CREATE INDEX idx_edges_from ON graph_edges(from_node);
+CREATE INDEX idx_edges_to ON graph_edges(to_node);
+
+-- Grant necessary permissions (adjust as needed for Supabase)
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+-- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+
+-- Note: After running this schema, run seed.sql to populate sample data
 
 -- Sample data for SRM KTR Campus
 -- Insert Buildings

@@ -10,17 +10,28 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/buildings")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
 public class BuildingController {
     
     @Autowired
     private BuildingRepository buildingRepository;
     
+    /**
+     * Get all buildings
+     */
     @GetMapping
     public ResponseEntity<List<Building>> getAllBuildings() {
-        List<Building> buildings = buildingRepository.findAll();
-        return ResponseEntity.ok(buildings);
+        try {
+            List<Building> buildings = buildingRepository.findAll();
+            return ResponseEntity.ok(buildings);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
     
+    /**
+     * Get building by ID
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Building> getBuildingById(@PathVariable Long id) {
         return buildingRepository.findById(id)

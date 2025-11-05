@@ -1,17 +1,16 @@
 package com.campuswalk.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "buildings")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Building {
@@ -23,13 +22,16 @@ public class Building {
     @Column(nullable = false)
     private String name;
     
+    @Column(nullable = false, precision = 10, scale = 8)
+    private BigDecimal lat;
+    
+    @Column(nullable = false, precision = 11, scale = 8)
+    private BigDecimal lng;
+    
     private String description;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
-    @OneToMany(mappedBy = "building", cascade = CascadeType.ALL)
-    private List<Floor> floors;
     
     @PrePersist
     protected void onCreate() {

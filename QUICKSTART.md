@@ -1,44 +1,270 @@
-# Quick Start Guide for CampusWalk
+# 🚀 Quick Start Guide - CampusWalk
 
-This guide will help you get CampusWalk up and running in less than 10 minutes.
+This guide will help you get CampusWalk (outdoor navigation) up and running in under 10 minutes.
 
-## Prerequisites Check
+## Prerequisites
 
-Before starting, ensure you have:
-- ✅ Java 17+ (`java -version`)
+Make sure you have installed:
+- ✅ Java 17 or higher (`java -version`)
 - ✅ Maven 3.6+ (`mvn -version`)
 - ✅ Node.js 18+ (`node -version`)
 - ✅ npm (`npm -version`)
-- ✅ Git (`git -version`)
+- ✅ A Supabase account (free tier works perfectly)
 
-## Option 1: Quick Local Setup (No External Database)
+## Step 1: Clone the Repository
 
-If you want to test the application structure without setting up a database:
-
-### 1. Clone the Repository
 ```bash
 git clone https://github.com/Vedanthdamn/CampusWalk.git
 cd CampusWalk
 ```
 
-### 2. Start Backend (Will fail without DB, but you can verify compilation)
+## Step 2: Setup Supabase Database
+
+### 2.1 Create a Supabase Project
+
+1. Go to [supabase.com](https://supabase.com) and sign up/login
+2. Click "New Project"
+3. Fill in project details and create
+4. Wait ~2 minutes for the project to be ready
+
+### 2.2 Run the Database Schema
+
+1. In your Supabase dashboard, go to **SQL Editor**
+2. Click "New Query"
+3. Open `database/schema.sql` from this repository
+4. Copy the entire contents and paste into the SQL Editor
+5. Click **Run** or press `Ctrl+Enter`
+6. You should see success messages - this creates all tables and adds sample seed data
+
+### 2.3 Get Your Connection Details
+
+1. Go to **Project Settings** → **Database**
+2. Note these details:
+   - Connection string (starts with `postgresql://`)
+   - Host (looks like `db.xxxxx.supabase.co`)
+   - Your database password
+
+## Step 3: Configure Backend
+
+### 3.1 Edit Database Configuration
+
+Navigate to the backend and edit `application.properties`:
+
 ```bash
-cd backend
-mvn clean install -DskipTests
-# This verifies the code compiles correctly
-cd ..
+cd backend/src/main/resources
+# Edit application.properties with your favorite editor
 ```
 
-### 3. Start Frontend
+Update these lines with your Supabase credentials:
+
+```properties
+spring.datasource.url=jdbc:postgresql://db.YOUR-PROJECT-REF.supabase.co:5432/postgres
+spring.datasource.username=postgres
+spring.datasource.password=YOUR-PASSWORD
+```
+
+Save the file.
+
+### 3.2 Build and Start Backend
+
+```bash
+cd backend  # if not already there
+mvn clean install
+mvn spring-boot:run
+```
+
+Wait for the message: `Started CampusWalkApplication`
+
+✅ Backend is now running at `http://localhost:8080`
+
+## Step 4: Configure Frontend
+
+Open a **new terminal** window.
+
+### 4.1 Install Dependencies
+
 ```bash
 cd frontend
 npm install
+```
+
+### 4.2 Configure Supabase Environment
+
+Create a `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your Supabase credentials:
+
+```env
+VITE_SUPABASE_URL=https://YOUR-PROJECT-REF.supabase.co
+VITE_SUPABASE_ANON_KEY=YOUR-ANON-KEY
+```
+
+To get your anon key:
+1. Go to Supabase **Project Settings** → **API**
+2. Copy the `anon` `public` key
+
+### 4.3 Start Frontend
+
+```bash
 npm run dev
 ```
 
-The frontend will start at `http://localhost:5173` but won't have data without the backend.
+✅ Frontend is now running at `http://localhost:5173`
 
-## Option 2: Full Setup with Supabase (Recommended)
+## Step 5: Test the Application
+
+### 5.1 Open in Browser
+
+Navigate to `http://localhost:5173`
+
+You should see the authentication screen.
+
+### 5.2 Login
+
+Choose one of:
+- **Sign Up**: Create a new account with email/password
+- **Sign In**: If you already have an account  
+- **Continue as Guest**: Skip authentication (easiest for testing)
+
+### 5.3 Test Navigation
+
+Once logged in, you'll see:
+
+1. **Campus Map** with OpenStreetMap tiles
+2. **Blue markers** = Hostels (BH1, BH2, MH12)
+3. **Red markers** = Buildings (TechPark, Library, Food Court, etc.)
+
+**To navigate:**
+
+1. Select your **origin hostel** from the dropdown (e.g., "Boys Hostel 1")
+2. Select **destination building** (e.g., "Tech Park")
+3. Click **"Start Navigation"**
+4. View:
+   - Blue route line on the map
+   - Turn-by-turn directions panel
+   - Distance and step count
+
+## Step 6: Test the API
+
+You can test backend endpoints directly:
+
+```bash
+# Get all hostels
+curl http://localhost:8080/api/hostels
+
+# Get all buildings
+curl http://localhost:8080/api/buildings
+
+# Get navigation route (use actual node IDs from database)
+curl "http://localhost:8080/api/navigation?from=1&to=6"
+```
+
+## Troubleshooting
+
+### Backend Issues
+
+**Problem: Cannot connect to database**
+- ✓ Check Supabase credentials in `application.properties`
+- ✓ Verify Supabase project is active (green status)
+- ✓ Try pinging the host: `ping db.YOUR-REF.supabase.co`
+
+**Problem: Port 8080 already in use**
+```bash
+# Find and kill the process using port 8080
+lsof -ti:8080 | xargs kill -9
+```
+
+### Frontend Issues
+
+**Problem: Cannot connect to backend**
+- ✓ Verify backend is running: `curl http://localhost:8080/api/buildings`
+- ✓ Check browser console for errors (F12)
+- ✓ Ensure CORS is enabled in backend (it should be by default)
+
+**Problem: Map not displaying**
+- ✓ Check internet connection (needed for OpenStreetMap tiles)
+- ✓ Verify Leaflet CSS is loaded (check browser console)
+- ✓ Check that lat/lng coordinates are valid numbers
+
+**Problem: No route found**
+- ✓ Verify seed data loaded: Check Supabase Table Editor
+- ✓ Ensure `graph_nodes` and `graph_edges` tables have data
+- ✓ Check browser network tab for API errors
+
+**Problem: Authentication fails**
+- ✓ Check Supabase URL and anon key in frontend `.env`
+- ✓ Try "Continue as Guest" to bypass auth
+- ✓ Verify Supabase Auth is enabled in project settings
+
+## Verification Checklist
+
+- [ ] Backend compiles without errors
+- [ ] Backend starts on port 8080
+- [ ] Database has sample data (check Supabase dashboard)
+- [ ] Frontend installs dependencies successfully
+- [ ] Frontend starts on port 5173
+- [ ] Can see map with markers
+- [ ] Can select hostel and building
+- [ ] Navigation route appears on map
+- [ ] Directions panel shows instructions
+
+## What's Next?
+
+1. **Explore the Code**
+   - Check out `README.md` for full documentation
+   - Review `PROJECT_STRUCTURE.md` for code organization
+
+2. **Customize Data**
+   - Add more hostels/buildings via SQL
+   - Update coordinates for your actual campus
+   - Add more graph nodes and edges for better routing
+
+3. **Extend Functionality**
+   - Add new features
+   - Customize the UI
+   - Integrate with other systems
+
+## Quick Commands Reference
+
+```bash
+# Backend
+cd backend
+mvn clean install       # Build
+mvn spring-boot:run    # Run
+mvn test              # Test
+
+# Frontend  
+cd frontend
+npm install           # Install dependencies
+npm run dev          # Development server
+npm run build        # Production build
+npm run preview      # Preview production build
+
+# Database
+# Run SQL queries in Supabase SQL Editor
+```
+
+## Getting Help
+
+- 📖 **Full Documentation**: See [README.md](README.md)
+- 🐛 **Found a Bug**: Open an issue on GitHub
+- 💡 **Need Help**: Check GitHub Discussions
+
+## Success! 🎉
+
+If you can see the campus map and navigate between hostels and buildings, you're all set!
+
+Start exploring the code and make it your own.
+
+---
+
+**Estimated Setup Time**: 10-15 minutes
+
+**Built with ❤️ for SRM University Students**
 
 ### Step 1: Set Up Supabase Database
 

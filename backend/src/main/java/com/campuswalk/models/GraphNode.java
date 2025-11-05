@@ -1,37 +1,35 @@
 package com.campuswalk.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "vertical_links")
-@Getter
-@Setter
+@Table(name = "graph_nodes")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class VerticalLink {
+public class GraphNode {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne
-    @JoinColumn(name = "from_location")
-    private Location fromLocation;
+    @Column(nullable = false)
+    private String name;
     
-    @ManyToOne
-    @JoinColumn(name = "to_location")
-    private Location toLocation;
+    @Column(nullable = false, precision = 10, scale = 8)
+    private BigDecimal lat;
     
-    @Column(name = "vertical_type", nullable = false)
-    private String verticalType;
+    @Column(nullable = false, precision = 11, scale = 8)
+    private BigDecimal lng;
     
-    private BigDecimal weight;
+    @Column(name = "node_type")
+    private String nodeType = "junction"; // junction, pathway, entrance
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
